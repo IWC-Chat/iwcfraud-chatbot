@@ -1,0 +1,94 @@
+# Winston Chat Bot - Integrity Wins Consulting
+# Free intake, empathetic profiling, no hard sell.
+
+import re
+from datetime import datetime
+
+ANGER_KEYWORDS = ['angry', 'mad', 'furious', 'betrayed', 'hate', 'scam', 'lied']
+DISTRESS_KEYWORDS = ['sad', 'worried', 'anxious', 'scared', 'shame', 'depressed', 'cry']
+NEUTRAL_KEYWORDS = ['help', 'fraud', 'k1', 'visa', 'evidence', 'form']
+
+SERVICES = {
+    'kit': 'Defense Resource Kit - $50: Evidence playbook & affidavit templates.',
+    'soft': 'Soft Package - $75: Gentle guidance & emotional support tools.',
+    'hard': 'Hard Package - $125: Aggressive evidence strategy & action plan.'
+}
+
+def profile_user(message):
+    msg = message.lower()
+    if any(kw in msg for kw in ANGER_KEYWORDS):
+        return 'angry', 'assertive'
+    elif any(kw in msg for kw in DISTRESS_KEYWORDS):
+        return 'distressed', 'empathetic'
+    return 'neutral', 'standard'
+
+def get_style(style):
+    styles = {
+        'empathetic': {
+            'greeting': "I'm really sorry you're going through this.",
+            'empathy': "Your feelings are completely valid.",
+            'cta': "Whenever you're ready, share more so I can help."
+        },
+        'assertive': {
+            'greeting': "I hear your anger—this shouldn't have happened.",
+            'empathy': "Let's turn that energy into strong evidence.",
+            'cta': "Tell me the details when you want to fight back."
+        },
+        'standard': {
+            'greeting': "Hey, I'm Winston with Integrity Wins.",
+            'empathy': "Many face K-1 fraud; you're not alone.",
+            'cta': "Share what happened—I'm listening."
+        }
+    }
+    return styles.get(style, styles['standard'])
+
+def present_services(archetype):
+    if archetype == 'angry':
+        return SERVICES['hard'] + "\n" + SERVICES['kit']
+    elif archetype == 'distressed':
+        return SERVICES['soft'] + "\nFree intake first—no charge."
+    return "Free intake form first. Later options:\n" + "\n".join(SERVICES.values())
+
+def handle_objection(message):
+    msg = message.lower()
+    if 'cost' in msg or 'money' in msg:
+        return "Intake is free. Services only if you choose later."
+    if 'trust' in msg:
+        return "We start with facts only—no pressure."
+    return "I understand. Tell me more when ready."
+
+def winston_bot():
+    print("Winston active. Type 'exit' to end.")
+    print("Hey, I'm Winston. Whenever you're ready—just talk.")
+    
+    log = []
+    
+    while True:
+        user_input = input("\nYou: ").strip()
+        if user_input.lower() == 'exit':
+            print("Winston: Here anytime. Take care.")
+            break
+        
+        log.append(f"{datetime.now()}: User: {user_input}")
+        
+        archetype, style = profile_user(user_input)
+        responses = get_style(style)
+        
+        bot_msg = responses['greeting']
+        
+        if any(word in user_input.lower() for word in ['package', 'service', 'buy', 'cost']):
+            bot_msg += "\n" + present_services(archetype)
+        
+        if any(word in user_input.lower() for word in ['but', 'however', 'no', 'doubt']):
+            bot_msg += "\n" + handle_objection(user_input)
+        
+        bot_msg += f"\n{responses['empathy']}\n{responses['cta']}"
+        
+        print(f"Winston: {bot_msg}")
+        log.append(f"{datetime.now()}: Winston: {bot_msg}")
+    
+    with open('winston_log.txt', 'a') as f:
+        f.write('\n'.join(log) + '\n\n')
+
+if __name__ == "__main__":
+    winston_bot()
